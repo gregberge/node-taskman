@@ -8,7 +8,8 @@ var test = function(data, callback)
    callback();
 };
 
-var driver = new RedisDriver(6379, 'arnold.lemonde-interactif.fr', 3);
+var config = {port: 6379, host: "arnold.lemonde-interactif.fr", db: 3};
+var driver = new RedisDriver(config);
 var options = {waitTime : 100, sleepTime: 30};
 var worker = new Worker("notify:apn", test, driver, options);
 worker.start();
