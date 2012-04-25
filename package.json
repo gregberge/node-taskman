@@ -19,7 +19,7 @@
     "node": ">=0.6.5"
   },
   "dependencies": {
-    "deferred" : "git://github.com/medikoo/deferred.git",
+    "jquery-deferred" : "0.2.0",
     "redis" : "git://github.com/mranney/node_redis.git"
   },
   "licence": "MIT",

@@ -1,5 +1,4 @@
-var deferred = require("deferred"),
-    Worker = require("./lib/index").Worker,
+var Worker = require("./lib/index").Worker,
     RedisDriver = require('./lib/driver/redis').RedisDriver;
 
 var test = function(data, callback)
