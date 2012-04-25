@@ -1,5 +1,5 @@
 {
-  "name": "node-worker",
+  "name": "node-queue-worker",
   "version": "0.1.0",
   "description": "Queue worker",
   "keywords": [
@@ -9,24 +9,18 @@
   "main": "lib",
   "repository": {
     "type": "git",
-    "url": "git://github.com/medikoo/deferred.git"
+    "url": "git://github.com/neoziro/node-queue-worker.git"
   },
   "bugs": {
-    "email": "medikoo+deferred@medikoo.com",
-    "url": "https://github.com/medikoo/deferred/issues"
+    "email": "berge.greg@gmail.com",
+    "url": "https://github.com/neoziro/node-queue-worker/issues"
   },
   "engines": {
-    "node": ">=0.1.103"
+    "node": ">=0.6.5"
   },
   "dependencies": {
-    "es5-ext": "git://github.com/medikoo/es5-ext.git"
-  },
-  "scripts": {
-    "test": "node ./node_modules/tad/bin/tad lib",
-    "lint": "node ./node_modules/jslint/bin/jslint.js --color --git"
-  },
-  "devDependencies": {
-    "tad": "0.1.x"
+    "deferred" : "git://github.com/medikoo/deferred.git",
+    "redis" : "git://github.com/mranney/node_redis.git"
   },
   "licence": "MIT",
   "optionalDependencies": {}
