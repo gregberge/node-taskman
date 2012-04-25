@@ -1,0 +1,33 @@
+{
+  "name": "node-worker",
+  "version": "0.1.0",
+  "description": "Queue worker",
+  "keywords": [
+    "worker"
+  ],
+  "author": "Bergé Greg <berge.greg@gmail.com> (http://www.neoziro.com/)",
+  "main": "lib",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/medikoo/deferred.git"
+  },
+  "bugs": {
+    "email": "medikoo+deferred@medikoo.com",
+    "url": "https://github.com/medikoo/deferred/issues"
+  },
+  "engines": {
+    "node": ">=0.1.103"
+  },
+  "dependencies": {
+    "es5-ext": "git://github.com/medikoo/es5-ext.git"
+  },
+  "scripts": {
+    "test": "node ./node_modules/tad/bin/tad lib",
+    "lint": "node ./node_modules/jslint/bin/jslint.js --color --git"
+  },
+  "devDependencies": {
+    "tad": "0.1.x"
+  },
+  "licence": "MIT",
+  "optionalDependencies": {}
+}
