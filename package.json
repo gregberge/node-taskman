@@ -19,8 +19,8 @@
     "node": ">=0.6.5"
   },
   "dependencies": {
-    "jquery-deferred" : "0.2.0",
-    "redis" : "git://github.com/mranney/node_redis.git"
+    "jquery-deferred" : ">=0.2.0",
+    "redis" : ">=0.7.1"
   },
   "licence": "MIT",
   "optionalDependencies": {}
