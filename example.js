@@ -9,6 +9,6 @@ var test = function(data, callback)
 
 var config = {port: 6379, host: "localhost", db: 3};
 var driver = new RedisDriver(config);
-var options = {waitTime : 100, sleepTime: 0, multiNumber: 100};
+var options = {waitTime : 100, sleepTime: 1000, multiNumber: 2};
 var worker = new Worker("notify:apn", test, driver, options);
 worker.start();
