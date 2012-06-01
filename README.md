@@ -1,4 +1,4 @@
-node-queue-worker
+node-taskman
 =================
 
-Queue worker in node
+Queue worker with redis implementation
