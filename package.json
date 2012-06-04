@@ -19,7 +19,8 @@
     "node": ">=0.6.5"
   },
   "scripts": {
-    "test": "node ./tests.js"
+    "test": "node ./tests.js",
+    "example": "node ./example.js"
   },
   "dependencies": {
     "jquery-deferred" : ">=0.2.0",
