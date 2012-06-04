@@ -18,6 +18,9 @@
   "engines": {
     "node": ">=0.6.5"
   },
+  "scripts": {
+    "test": "node ./tests.js"
+  },
   "dependencies": {
     "jquery-deferred" : ">=0.2.0",
     "redis" : ">=0.7.1"

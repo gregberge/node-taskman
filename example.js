@@ -6,13 +6,16 @@ var driver = new node_taskman.driver.RedisDriver(config);
 
 var queue = new node_taskman.Queue("test", driver);
 
-var action = function(data){console.log(data);};
+var action = function(data, callback){console.log(data); callback();};
 
-var options = {waitingTimeout: 20};
+var worker = new node_taskman.Worker(queue, driver, "test_worker", action);
 
-var worker = new node_taskman.Worker(queue, driver, action, options);
+var cb = function()
+{
+   console.log("start ok");
+};
 
-console.log(worker);
+worker.start(cb);
 
 
 
