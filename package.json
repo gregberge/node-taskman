@@ -1,9 +1,7 @@
 {
   "name": "node-taskman",
   "version": "0.2.0",
-  "description": "node-taskman is a node.js implementation of taskman worker.
-  Taskman is a system of worker which work with a queue and a hash in redis,
-  so we can pilot it directly in redis console or via other languages.",
+  "description": "node-taskman is a node.js implementation of taskman worker. Taskman is a worker system that can be piloted directly in redis.",
   "keywords": [
     "worker",
     "redis",
