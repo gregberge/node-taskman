@@ -1,19 +1,23 @@
 {
   "name": "node-taskman",
-  "version": "0.1.0",
-  "description": "Queue worker",
+  "version": "0.2.0",
+  "description": "node-taskman is a node.js implementation of taskman worker.
+  Taskman is a system of worker which work with a queue and a hash in redis,
+  so we can pilot it directly in redis console or via other languages.",
   "keywords": [
-    "worker"
+    "worker",
+    "redis",
+    "task"
   ],
   "author": "Bergé Greg <berge.greg@gmail.com> (http://www.neoziro.com/)",
-  "main": "lib",
+  "main": "./index",
   "repository": {
     "type": "git",
-    "url": "git://github.com/neoziro/node-queue-worker.git"
+    "url": "git://github.com/neoziro/node-taskman.git"
   },
   "bugs": {
     "email": "berge.greg@gmail.com",
-    "url": "https://github.com/neoziro/node-queue-worker/issues"
+    "url": "https://github.com/neoziro/node-taskman/issues"
   },
   "engines": {
     "node": ">=0.6.5"
@@ -23,9 +27,7 @@
     "example": "node ./example.js"
   },
   "dependencies": {
-    "jquery-deferred" : ">=0.2.0",
-    "redis" : ">=0.7.1"
+      "redis" : ">=0.7.1"
   },
-  "licence": "MIT",
-  "optionalDependencies": {}
+  "licence": "MIT"
 }
