@@ -244,7 +244,7 @@ In the module, there is a script named taskman-caller.js, with this script you c
 How to use ?
 ------------
 
-	$ node bin/taskman-caller.js -w "my_worker" -q "my_queue" -a "echo \"##data##\"" -s
+	$ node bin/taskman-caller.js -w "my_worker" -q "my_queue" -a "echo \"##data##\"" -s --output
 	
 With this simple line you call a worker that echo the data pushed in the queue.
 
