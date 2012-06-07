@@ -236,7 +236,32 @@ Get all infos of the worker.
 
 * `callback(err, res)` : Called when the command is done.
 
-in redis database
+Taskman caller
+==============
+
+In the module, there is a script named taskman-caller.js, with this script you can spawn a worker that call a simple command.
+
+How to use ?
+------------
+
+	$ node bin/taskman-caller.js -w "my_worker" -q "my_queue" -a "echo \"##data##\"" -s
+	
+With this simple line you call a worker that echo the data pushed in the queue.
+
+Options :
+
+````
+  -a, --action          The script to execute, with ##data## as json data       [required]
+  --timeout             The timeout of the action in milliseconds             
+  -w, --worker          The name of the worker                                  [required]
+  -o, --worker-options  Options of the worker in json                         
+  -q, --queue           The name of the queue                                   [required]
+  -p, --port            The redis port                                        
+  -h, --host            The redis host                                        
+  -s, --simple          The simple mode, only one data without an array is pop
+````
+
+In redis database
 =================
 
 Every information of the worker are avalaible in the redis database, an example :
