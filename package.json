@@ -25,7 +25,8 @@
     "example": "node ./example.js"
   },
   "dependencies": {
-      "redis" : ">=0.7.1"
+      "redis" : ">=0.7.1",
+      "optimist" : ">=0.3.4"
   },
   "licence": "MIT"
 }
