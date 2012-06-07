@@ -25,6 +25,20 @@ queue.rpush("Hello World", function(){
 });
 ````
 
+Installation
+============
+
+Via [npm][]:
+
+   	$ npm install node-taskman
+	
+As a submodule of your project
+
+	$ git submodule add http://github.com/neoziro/node-taskman.git node-taskman
+	$ git submodule update --init
+	
+[npm]: https://github.com/isaacs/npm
+
 Methods
 =======
 
@@ -292,18 +306,6 @@ redis 127.0.0.1:6379> hset worker:test_queue:test_worker loop_sleep 20
 ````
 
 So in real time you can control your worker !
-
-Installation
-============
-
-Via [npm][]:
-
-   $ npm install node-taskman
-	
-As a submodule of your project
-
-	$ git submodule add http://github.com/neoziro/node-taskman.git node-taskman
-	$ git submodule update --init
 
 Other implementations
 =====================
