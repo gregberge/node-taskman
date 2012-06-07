@@ -258,7 +258,9 @@ Options :
   -q, --queue           The name of the queue                                   [required]
   -p, --port            The redis port                                        
   -h, --host            The redis host                                        
+  --database            The redis database                                    
   -s, --simple          The simple mode, only one data without an array is pop
+  --output              Transfer stdout from action
 ````
 
 In redis database

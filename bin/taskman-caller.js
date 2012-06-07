@@ -36,38 +36,67 @@ var argv = optimist
    describe : 'The redis host',
    demand : false
 })
+.options('database', {
+   describe : 'The redis database',
+   demand : false
+})
 .options('s', {
    alias : 'simple',
    describe : 'The simple mode, only one data without an array is pop',
    demand : false
 })
+.options('output', {
+   describe : 'Transfer stdout from action',
+   demand : false
+})
 .argv;
 
 var child_process = require('child_process'),
-action, jsonData, workerOptions = {}, driver, queue, worker, options = {};
+action, jsonData, workerOptions = {}, driver, queue, worker, options = {}, driverConfig = {};
 
 if(argv.timeout)
 {
    options.timeout = ~~(argv.timeout + 0.5);
 }
 
-driver = new taskman.driver.RedisDriver();
+if(argv.port)
+{
+   driverConfig.port = argv.port;
+}
+
+if(argv.host)
+{
+   driverConfig.host = argv.host;
+}
+
+if(argv.database)
+{
+   driverConfig.db = argv.database;
+}
+
+driver = new taskman.driver.RedisDriver(driverConfig);
 queue = new taskman.Queue(argv.queue, driver);
 
-if(!argv.s && argv.o)
+if(argv.o)
    workerOptions = JSON.parse(argv.o);
 
-   worker = new taskman.Worker(queue, driver, argv.worker, function(data, callback){
+if(argv.s)
+   workerOptions.dataPerTick = 1;
+
+worker = new taskman.Worker(queue, driver, argv.worker, function(data, callback){
    
    if(argv.s)
-      jsonData = data[0];
+      jsonData = data[0].replace(/"/g, "\\\"");
    else
       jsonData = JSON.stringify(data).replace(/"/g, "\\\"");
    
    action = argv.action.replace(/##data##/g, jsonData);
    
    child_process.exec(action, options, function(error, stdout, stderr){
-      console.log(stdout);
+      
+      if(argv.output)
+         console.log(stdout);
+      
       callback();
    });
 }, workerOptions);
