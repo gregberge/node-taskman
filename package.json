@@ -1,6 +1,6 @@
 {
   "name": "node-taskman",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "node-taskman is a node.js implementation of taskman worker. Taskman is a worker system that can be piloted directly in redis.",
   "keywords": [
     "worker",
