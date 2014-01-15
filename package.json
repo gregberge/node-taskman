@@ -27,7 +27,7 @@
   "dependencies": {
     "redis": "~0.8.3",
     "optimist": "~0.5.2",
-    "lodash": "~1.2.1"
+    "lodash": "~2.4.1"
   },
   "licence": "MIT"
 }
