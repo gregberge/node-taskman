@@ -164,8 +164,6 @@ describe('Worker with a redis queue', function () {
   });
 
 
-
-
   describe('#Process', function () {
 
     beforeEach(function () {
@@ -214,7 +212,7 @@ describe('Worker with a redis queue', function () {
     describe('LIFO', function () {
 
       beforeEach(function (done) {
-        initWorker({type: 'LIFO'}, done);
+        initWorker({type: 'LIFO', pauseSleepTime: 0.01}, done);
       });
 
       it('should treat an element', function (done) {
@@ -246,13 +244,70 @@ describe('Worker with a redis queue', function () {
         });
       });
 
+      it('should treat the same element many times', function (done) {
+        var expectElements = [];
+
+        worker.on('job complete', function () {
+          expectElements.push(action.getCall(expectElements.length).args[0][0]);
+
+          if (expectElements.length !== 3) return;
+
+          expect(expectElements).to.eql(['first', 'first', 'first']);
+          worker.removeAllListeners();
+          done();
+        });
+
+        async.series([
+          worker.setStatus.bind(worker, QueueWorker.STATUS_PAUSED),
+          queue.rpush.bind(queue, 'first'),
+          queue.rpush.bind(queue, 'first'),
+          queue.rpush.bind(queue, 'first'),
+          worker.setStatus.bind(worker, QueueWorker.STATUS_WORKING)
+        ], function (err) {
+          if (err) return done(err);
+        });
+      });
+
+    });
+
+    describe('Unique mode', function () {
+
+      beforeEach(function (done) {
+        initWorker({unique: true, pauseSleepTime: 0.01}, done);
+      });
+
+      it('should be impossible to have the same key in the queue', function (done) {
+        var expectElements = [];
+
+        worker.on('job complete', function () {
+          expectElements.push(action.getCall(expectElements.length).args[0][0]);
+
+          if (expectElements.length !== 2) return;
+
+          expect(expectElements).to.eql(['first', 'second']);
+          worker.removeAllListeners();
+          done();
+        });
+
+        async.series([
+          worker.setStatus.bind(worker, QueueWorker.STATUS_PAUSED),
+          queue.rpush.bind(queue, 'first'),
+          queue.rpush.bind(queue, 'first'),
+          queue.rpush.bind(queue, 'first'),
+          queue.rpush.bind(queue, 'first'),
+          queue.rpush.bind(queue, 'first'),
+          queue.rpush.bind(queue, 'second'),
+          worker.setStatus.bind(worker, QueueWorker.STATUS_WORKING)
+        ], function (err) {
+          if (err) return done(err);
+        });
+
+      });
     });
 
   });
 
 });
-
-
 
 
 describe('Worker processing', function () {
@@ -317,14 +372,11 @@ describe('Worker processing', function () {
 
     Date.now = sinon.spy(getTimeAddSeconds.bind(null, 10));
 
-    var setEndDate = QueueWorker.prototype.setEndDate = sinon.stub();
-
     worker = new QueueWorker(mockQueue, mockDriver, 'W', action);
     worker.process();
 
     clock.tick(1);
 
-    expect(setEndDate).to.be.calledWith('1970-01-01T00:00:10.000Z');
     expect(action).not.to.be.called;
   });
 
@@ -403,6 +455,4 @@ describe('Worker processing', function () {
     expect(setStatus).to.be.calledWith(QueueWorker.STATUS_WORKING);
     expect(action).to.be.called;
   });
-
-
 });
