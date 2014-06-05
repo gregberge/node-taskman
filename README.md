@@ -1,6 +1,10 @@
 node-taskman
 ============
 
+[![Build Status](https://travis-ci.org/neoziro/node-taskman.svg?branch=master)](https://travis-ci.org/neoziro/node-taskman)
+[![Dependency Status](https://david-dm.org/neoziro/node-taskman.svg?theme=shields.io)](https://david-dm.org/neoziro/node-taskman)
+[![devDependency Status](https://david-dm.org/neoziro/node-taskman/dev-status.svg?theme=shields.io)](https://david-dm.org/neoziro/node-taskman#info=devDependencies)
+
 node-taskman is a node.js implementation of taskman worker.
 
 Taskman is a system of worker which work with a queue and a hash in redis, so we can pilot it directly in redis console or via other languages.
