@@ -56,41 +56,44 @@ Create a new queue, with a `name` and a `driver`
 * `name` : The name of the queue
 * `driver` : The driver to use.
 
+```js
+var queue = new taskman.Queue('test', redisDriver);
+```
+
 ### queue.rpush(data, callback)
 
 Push a data at the end of the list.
 
 * `data` : The data to push, only string is supported.
-* `callback(err, res)` : Called when command is done.
+
+```js
+queue.rpush('task', function (err) {
+  // ...
+});
+```
+
 
 ### queue.lpush(data, callback)
 
 Push a data at the beginning of the list.
 
 * `data` : The data to push, only string is supported.
-* `callback(err, res)` : Called when command is done.
 
-### queue.rpop(number, callback)
-
-Remove and get the number of element specified at the end of a queue. If you use rpush to add data to the list,
-the type is LIFO. We can pass a number to get several data in the queue using pipeling to be more performant.
-
-* `number` : Number of data to get.
-* `callback(err, res)` : Called when command is done.
-
-### queue.lpop(number, callback)
-
-Remove and get the number of element specified at the end of a queue. If you use rpush to add data to the list,
-the type is FIFO. We can pass a number to get several data in the queue using pipeling to be more performant.
-
-* `number` : Number of data to get.
-* `callback(err, res)` : Called when command is done.
+```js
+queue.lpush('task', function (err) {
+  // ...
+});
+```
 
 ### queue.llen(callback)
 
 Count the number of element in the queue.
 
-* `callback(err, res)` : Called when command is done.
+```js
+queue.llen(function (err, count) {
+  // ...
+});
+```
 
 ### new Worker(queue, driver, name, action, options)
 
@@ -113,147 +116,65 @@ Create a worker to take items of a queue and execute an action.
    * `unique` : A key can't be duplicated in queue, default `false`.
    * `timeout` : A timeout for the pop's action, default `300000` (5 minutes).
 
+```js
+var worker = new taskman.Worker(queue, driver, 'my-worker', function (data, callback) {
+  // process task
+  callback();
+});
+```
+
 ### worker.start(callback)
 
-Start the worker, execute the `callback` when it's started.
+Start the worker.
 
-* `callback(err, res)` : Called when the command is done.
+```js
+worker.start(function (err, res) {
+  // ...
+});
+```
 
 ### worker.stop(callback)
 
-Stop the worker, execute the `callback` when it's stopped.
+Stop the worker.
 
-* `callback(err, res)` : Called when the command is done.
+```js
+worker.stop(function (err, res) {
+  // ...
+});
+``
 
 ### worker.pause(callback)
 
-Pause the worker, execute the `callback` when it's paused.
+Pause the worker.
 
-* `callback(err, res)` : Called when the command is done.
+```js
+worker.pause(function (err, res) {
+  // ...
+});
+```
 
-### worker.setEndDate(date, callback)
+### worker.setInfo(name, value, callback)
 
-Set an end date to the worker, when the end date is reached, the worker die.
+Change an information in the worker.
 
-* `date` : Date at json format (`new Date().toJSON()`).
-* `callback(err, res)` : Called when the command is done.
+* `name`: Name of the information
+* `value`: Value of the information
 
-### worker.setLoopSleepTime(time, callback)
-
-Change the loop sleep time.
-
-* `time` : Time in seconds.
-* `callback(err, res)` : Called when the command is done.
-
-### worker.setPauseSleepTime(time, callback)
-
-Change the pause sleep time.
-
-* `time` : Time in seconds.
-* `callback(err, res)` : Called when the command is done.
-
-### worker.setDataPerTick(number, callback)
-
-Change the number of items returned in each tick.
-
-* `number` : Number of items per tick.
-* `callback(err, res)` : Called when the command is done.
-
-### worker.setWaitingTimeout(timeout, callback)
-
-Change the waiting timeout of the worker.
-
-* `timeout` : Timeout in second.
-* `callback(err, res)` : Called when the command is done.
-
-### worker.setType(type, callback)
-
-Change the type of the worker.
-
-* `type` : Type of the process, LIFO or FIFO.
-* `callback(err, res)` : Called when the command is done.
-
-### worker.getCompleteName()
-
-Get the complete name of the worker.
-
-`return` a string that is the complete name of the worker.
+```js
+worker.setInfo('loop_sleep', 5, function (err, infos) {
+  // ...
+});
+```
 
 ### worker.getInfos(callback)
 
 Get all infos of the worker.
 
-* `callback(err, res)` : Called when the command is done.
-
-## In redis database
-
-Every information of the worker are avalaible in the redis database, an example:
-
-````js
-var taskman = require("node-taskman"), driver, queue, worker;
-
-driver = new taskman.driver.RedisDriver();
-queue = new taskman.Queue("test_queue", driver);
-
-worker = new taskman.Worker(queue, driver, "test_worker", function(data, callback){
-   console.log(data);
-   callback();
+```js
+worker.getInfos(function (err, infos) {
+  // ...
 });
-
-queue.rpush("Hello World", function(){
-   worker.start();
-});
-````
-
-When this script is executed, we can connect redis and execute some commands:
-
-````
-redis-cli
-redis 127.0.0.1:6379> hgetall worker:test_queue:test_worker
- 1) "waiting_timeout"
- 2) "1"
- 3) "loop_sleep"
- 4) "0"
- 5) "pause_sleep_time"
- 6) "5"
- 7) "data_per_tick"
- 8) "1"
- 9) "action"
-10) "function (data, callback){\n   console.log(data);\n   callback();\n}"
-11) "type"
-12) "FIFO"
-13) "language"
-14) "nodejs"
-15) "process_id"
-16) "23985"
-17) "status"
-18) "WAITING"
-19) "status_changedate"
-20) "2012-06-05T09:27:02.693Z"
-21) "cpt_action"
-22) "1"
-23) "start_date"
-24) "2012-06-05T09:26:42.653Z"
-25) "end_date"
-26) "2012-06-05T14:14:42.654Z"
-````
-
-And we can see some informations:
-
-* `language` : The language that execute the worker
-* `process_id` : The PID of the worker
-* `status` : The current status of the worker
-* `status_changedate` : The last move
-* `cpt_action` : The number of tick
-
-We have our parameters too, and we can change them:
-
-````
-redis 127.0.0.1:6379> hset worker:test_queue:test_worker loop_sleep 20
-(integer) 0
-````
-
-So in real time you can control your worker!
+```
 
 ## License
 

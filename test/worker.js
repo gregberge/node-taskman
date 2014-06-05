@@ -68,7 +68,7 @@ describe('Worker with a redis queue', function () {
           expect(params).to.have.property('queue', 'Q');
           expect(params).to.have.property('type', 'FIFO');
           expect(params).to.have.property('language', 'nodejs');
-          expect(params).to.have.property('unique', 'false');
+          expect(params).to.have.property('unique', '0');
           done();
         });
       });
