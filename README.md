@@ -56,13 +56,6 @@ Create a new queue, with a `name` and a `driver`
 * `name` : The name of the queue
 * `driver` : The driver to use.
 
-````javascript
-var taskman = require("node-taskman"), driver, queue;
-
-driver = new taskman.driver.RedisDriver();
-queue = new taskman.Queue("my_queue", driver);
-````
-
 ### queue.rpush(data, callback)
 
 Push a data at the end of the list.
