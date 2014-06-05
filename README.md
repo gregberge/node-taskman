@@ -31,12 +31,12 @@ Installation
 Via [npm][]:
 
    	$ npm install node-taskman
-	
+
 As a submodule of your project
 
 	$ git submodule add http://github.com/neoziro/node-taskman.git node-taskman
 	$ git submodule update --init
-	
+
 [npm]: https://github.com/isaacs/npm
 
 Methods
@@ -62,7 +62,7 @@ Create a new queue, with a `name` and a `driver`
 
 * `name` : The name of the queue
 * `driver` : The driver to use.
- 
+
 ````javascript
 var taskman = require("node-taskman"), driver, queue;
 
@@ -130,6 +130,8 @@ Create a worker to take items of a queue and execute an action.
    * `waitingTimeout` : The time in seconds to wait when the queue is empty, default `1`.
    * `dataPerTick` : The number of item popped from the queue, default `1`.
    * `expire` : Expire time in seconds, default `17280000` (200 days).
+   * `unique` : A key can't be duplicated in queue, default `false`.
+   * `timeout` : A timeout for the pop's action, default `300000` (5 minutes).
 
 ````javascript
 var taskman = require("node-taskman"), driver, queue, worker;
@@ -245,20 +247,20 @@ How to use ?
 ------------
 
 	$ node bin/taskman-caller.js -w "my_worker" -q "my_queue" -a "echo \"##data##\"" -s --output
-	
+
 With this simple line you call a worker that echo the data pushed in the queue.
 
 Options :
 
 ````
   -a, --action          The script to execute, with ##data## as json data       [required]
-  --timeout             The timeout of the action in milliseconds             
+  --timeout             The timeout of the action in milliseconds
   -w, --worker          The name of the worker                                  [required]
-  -o, --worker-options  Options of the worker in json                         
+  -o, --worker-options  Options of the worker in json
   -q, --queue           The name of the queue                                   [required]
-  -p, --port            The redis port                                        
-  -h, --host            The redis host                                        
-  --database            The redis database                                    
+  -p, --port            The redis port
+  -h, --host            The redis host
+  --database            The redis database
   -s, --simple          The simple mode, only one data without an array is pop
   --output              Transfer stdout from action
 ````
