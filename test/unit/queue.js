@@ -7,124 +7,132 @@ var RedisDriver = require(app.base + 'driver/redis').RedisDriver;
 describe('Queue', function () {
   var queue, driver, queueName = 'test';
 
-  before(function (done) {
+  before(function () {
     driver = new RedisDriver(app.config.redis.run);
     driver.db = app.config.redis.db;
-    queue = new Queue(queueName, driver);
-    queue.initialize(done);
   });
 
   afterEach(function (done) {
     driver.client.flushdb(done);
   });
 
-  it('should be correctly initialized', function () {
-    expect(queue.initialized).to.be.true;
+  describe('default', function () {
+    before(function (done) {
+      queue = new Queue(queueName, driver);
+      queue.initialize(done);
+    });
+
+    it('should be correctly initialized', function () {
+      expect(queue.initialized).to.be.true;
+    });
+
+    it('should get name', function () {
+      expect(queue.getName()).to.equal(queueName);
+    });
+
+    describe('#basic commands with empty db', function () {
+
+      it('should rpush', function (done) {
+        queue.rpush('hello', function (err, count) {
+          if (err) return done(err);
+          expect(count).to.equal(1);
+          done();
+        });
+      });
+
+      it('should lpush', function (done) {
+        queue.lpush('hello', function (err, count) {
+          if (err) return done(err);
+          expect(count).to.equal(1);
+          done();
+        });
+      });
+
+      it('should lpop', function (done) {
+        queue.lpop(1, function (err, data) {
+          if (err) return done(err);
+          expect(data).to.eql([ null ]);
+          done();
+        });
+      });
+
+      it('should rpop', function (done) {
+        queue.rpop(1, function (err, data) {
+          if (err) return done(err);
+          expect(data).to.eql([ null ]);
+          done();
+        });
+      });
+
+      it('should llen', function (done) {
+        queue.llen(function (err, count) {
+          if (err) return done(err);
+          expect(count).to.equal(0);
+          done();
+        });
+      });
+
+    });
+
+
+    describe('#basic commands compiles', function () {
+
+      beforeEach(function (done) {
+        async.series([
+          queue.rpush.bind(queue, 'first'),
+          queue.rpush.bind(queue, 'second')
+        ], done);
+      });
+
+      it('should rpop', function (done) {
+        queue.rpop(1, function (err, data) {
+          if (err) return done(err);
+          expect(data).to.eql([ 'second' ]);
+          done();
+        });
+      });
+
+      it('should lpop', function (done) {
+        queue.lpop(1, function (err, data) {
+          if (err) return done(err);
+          expect(data).to.eql([ 'first' ]);
+          done();
+        });
+      });
+
+      it('should lpush', function (done) {
+        async.series([
+          queue.lpush.bind(queue, 'third'),
+          queue.lpop.bind(queue, 1)
+        ], function (err, results) {
+          if (err) return done(err);
+          expect(results[1]).to.eql([ 'third' ]);
+          done();
+        });
+      });
+
+      it('should llen', function (done) {
+        queue.llen(function (err, count) {
+          if (err) return done(err);
+          expect(count).to.equal(2);
+          done();
+        });
+      });
+
+    });
   });
 
-  it('should get name', function () {
-    expect(queue.getName()).to.equal(queueName);
-  });
 
-  describe('#basic commands with empty db', function () {
-
-    it('should rpush', function (done) {
-      queue.rpush('hello', function (err, count) {
-        if (err) return done(err);
-        expect(count).to.equal(1);
-        done();
-      });
-    });
-
-    it('should lpush', function (done) {
-      queue.lpush('hello', function (err, count) {
-        if (err) return done(err);
-        expect(count).to.equal(1);
-        done();
-      });
-    });
-
-    it('should lpop', function (done) {
-      queue.lpop(1, function (err, data) {
-        if (err) return done(err);
-        expect(data).to.eql([ null ]);
-        done();
-      });
-    });
-
-    it('should rpop', function (done) {
-      queue.rpop(1, function (err, data) {
-        if (err) return done(err);
-        expect(data).to.eql([ null ]);
-        done();
-      });
-    });
-
-    it('should llen', function (done) {
-      queue.llen(function (err, count) {
-        if (err) return done(err);
-        expect(count).to.equal(0);
-        done();
-      });
-    });
-
-  });
-
-
-  describe('#basic commands compiles', function () {
-
-    beforeEach(function (done) {
-      async.series([
-        queue.rpush.bind(queue, 'first'),
-        queue.rpush.bind(queue, 'second')
-      ], done);
-    });
-
-    it('should rpop', function (done) {
-      queue.rpop(1, function (err, data) {
-        if (err) return done(err);
-        expect(data).to.eql([ 'second' ]);
-        done();
-      });
-    });
-
-    it('should lpop', function (done) {
-      queue.lpop(1, function (err, data) {
-        if (err) return done(err);
-        expect(data).to.eql([ 'first' ]);
-        done();
-      });
-    });
-
-    it('should lpush', function (done) {
-      async.series([
-        queue.lpush.bind(queue, 'third'),
-        queue.lpop.bind(queue, 1)
-      ], function (err, results) {
-        if (err) return done(err);
-        expect(results[1]).to.eql([ 'third' ]);
-        done();
-      });
-    });
-
-    it('should llen', function (done) {
-      queue.llen(function (err, count) {
-        if (err) return done(err);
-        expect(count).to.equal(2);
-        done();
-      });
-    });
-
-  });
 
   describe('#unique mode', function () {
 
     var nameSet;
     var data = 'first';
 
-    beforeEach(function () {
+    before(function (done) {
       nameSet = driver.getUniqueSetName(queueName);
-      queue.unique = true;
+      queue = new Queue(queueName, driver, {unique: true});
+      queue.initialize(done);
     });
 
     it('rpush should set data in a Set', function (done) {

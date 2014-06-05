@@ -65,6 +65,7 @@ describe('Worker with a redis queue', function () {
           expect(params).to.have.property('queue', 'Q');
           expect(params).to.have.property('type', 'FIFO');
           expect(params).to.have.property('language', 'nodejs');
+          expect(params).to.have.property('unique', 'false');
           done();
         });
       });
@@ -273,7 +274,8 @@ describe('Worker with a redis queue', function () {
     describe('Unique mode', function () {
 
       beforeEach(function (done) {
-        initWorker({unique: true, pauseSleepTime: 0.01}, done);
+        queue = new Queue('Q', driver, {unique: true});
+        initWorker({pauseSleepTime: 0.01}, done);
       });
 
       it('should be impossible to have the same key in the queue', function (done) {
