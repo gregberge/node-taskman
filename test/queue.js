@@ -1,15 +1,17 @@
 'use strict';
 
 var async = require('async');
-var Queue = require(app.base + 'queue').Queue;
-var RedisDriver = require(app.base + 'driver/redis').RedisDriver;
+var Queue = require('../lib/queue').Queue;
+var RedisDriver = require('../lib/driver/redis').RedisDriver;
+var config = require('./config');
+var expect = require('chai').expect;
 
 describe('Queue', function () {
   var queue, driver, queueName = 'test';
 
   before(function () {
-    driver = new RedisDriver(app.config.redis.run);
-    driver.db = app.config.redis.db;
+    driver = new RedisDriver(config.redis.run);
+    driver.db = config.redis.db;
   });
 
   afterEach(function (done) {

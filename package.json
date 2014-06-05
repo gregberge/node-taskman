@@ -1,14 +1,14 @@
 {
   "name": "node-taskman",
   "version": "0.4.5",
-  "description": "node-taskman is a node.js implementation of taskman worker. Taskman is a worker system that can be piloted directly in redis.",
+  "description": "Fast work queue based on redis.",
   "keywords": [
     "worker",
     "redis",
     "task"
   ],
   "author": "Bergé Greg <berge.greg@gmail.com> (http://www.neoziro.com/)",
-  "main": "./index",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/neoziro/node-taskman.git"
@@ -17,27 +17,21 @@
     "email": "berge.greg@gmail.com",
     "url": "https://github.com/neoziro/node-taskman/issues"
   },
-  "engines": {
-    "node": ">=0.6.5"
-  },
   "scripts": {
-    "test": "node ./tests.js",
-    "example": "node ./example.js"
+    "test": "mocha"
   },
   "dependencies": {
-    "redis": "~0.8.3",
-    "optimist": "~0.5.2",
-    "lodash": "^2.4.1",
     "async": "^0.9.0",
-    "moment": "^2.6.0"
+    "lodash": "^2.4.1",
+    "moment": "^2.6.0",
+    "optimist": "^0.6.1",
+    "redis": "^0.10.3"
   },
   "devDependencies": {
-    "chai": "~1.7.2",
-    "mocha": "~1.13.0",
-    "sinon": "~1.7.3",
-    "sinon-chai": "~2.4.0",
-    "chai-things": "~0.2.0",
-    "proxyquire": "~0.5.2"
+    "chai": "^1.9.1",
+    "mocha": "^1.20.1",
+    "sinon": "^1.10.2",
+    "sinon-chai": "^2.5.0"
   },
   "licence": "MIT"
 }

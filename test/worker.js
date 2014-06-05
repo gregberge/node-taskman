@@ -2,28 +2,31 @@
 
 var async = require('async');
 var moment = require('moment');
-var QueueWorker = require(app.base + 'worker').Worker;
-var Queue = require(app.base + 'queue').Queue;
-var RedisDriver = require(app.base + 'driver/redis').RedisDriver;
+var sinon = require('sinon');
+var QueueWorker = require('../lib/worker').Worker;
+var Queue = require('../lib/queue').Queue;
+var RedisDriver = require('../lib/driver/redis').RedisDriver;
+var config = require('./config');
+var expect = require('chai').use(require('sinon-chai')).expect;
 
 describe('Worker with a redis queue', function () {
 
   var worker, queue;
-  var driver = new RedisDriver(app.config.redis.run);
+  var driver = new RedisDriver(config.redis.run);
 
   // mock
   var action = sinon.stub().yields();
   var status = QueueWorker.prototype.setStatus = sinon.spy(QueueWorker.prototype.setStatus);
 
   // init queue and driver
-  driver.db = app.config.redis.db;
+  driver.db = config.redis.db;
   queue = new Queue('Q', driver);
 
   // init worker with options
-  var initWorker = function (options, callback) {
+  function initWorker(options, callback) {
     worker = new QueueWorker(queue, driver, 'W', action, options);
     worker.start(callback);
-  };
+  }
 
   // reinit state of bd and mocks
   afterEach(function (done) {
@@ -168,8 +171,8 @@ describe('Worker with a redis queue', function () {
   describe('#Process', function () {
 
     beforeEach(function () {
-      driver = new RedisDriver(app.config.redis.run);
-      driver.db = app.config.redis.db;
+      driver = new RedisDriver(config.redis.run);
+      driver.db = config.redis.db;
       queue = new Queue('Q', driver);
     });
 
