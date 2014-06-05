@@ -3,9 +3,13 @@
   "version": "0.4.5",
   "description": "Fast work queue based on redis.",
   "keywords": [
+    "work",
+    "queue",
     "worker",
     "redis",
-    "task"
+    "task",
+    "kue",
+    "bull"
   ],
   "author": "Bergé Greg <berge.greg@gmail.com> (http://www.neoziro.com/)",
   "main": "index.js",
