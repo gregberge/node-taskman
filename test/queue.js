@@ -182,12 +182,12 @@ describe('Queue', function () {
       async.series([
         queue.rpush.bind(queue, data),
         queue.rpop.bind(queue, 1),
-        driver.client.hget.bind(driver.client, nameSet, driver.shasum(data))
+        driver.client.sismember.bind(driver.client, nameSet, driver.shasum(data))
       ], function (err, results) {
         if (err) return done(err);
         expect(results[0]).to.equal(1);
         expect(results[1]).to.eql([data]);
-        expect(results[2]).to.be.null;
+        expect(results[2]).to.equal(0);
         done();
       });
     });
@@ -202,12 +202,12 @@ describe('Queue', function () {
       async.series([
         queue.lpush.bind(queue, data),
         queue.lpop.bind(queue, 1),
-        driver.client.hget.bind(driver.client, nameSet, driver.shasum(data))
+        driver.client.sismember.bind(driver.client, nameSet, driver.shasum(data))
       ], function (err, results) {
         if (err) return done(err);
         expect(results[0]).to.equal(1);
         expect(results[1]).to.eql([data]);
-        expect(results[2]).to.be.null;
+        expect(results[2]).to.equal(0);
         done();
       });
     });
@@ -219,13 +219,13 @@ describe('Queue', function () {
         queue.lpush.bind(queue, 'third'),
         queue.lpush.bind(queue, 'third'),
         queue.lpop.bind(queue, 4),
-        driver.client.hget.bind(driver.client, nameSet, driver.shasum(data))
+        driver.client.sismember.bind(driver.client, nameSet, driver.shasum(data))
       ], function (err, results) {
         if (err) return done(err);
         expect(results).to.eql([
           1, 2, 3, 0,
           [ 'third', 'second', 'first', null ],
-          null
+          0
         ]);
         done();
       });
