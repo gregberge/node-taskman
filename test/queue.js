@@ -140,11 +140,11 @@ describe('Queue', function () {
     it('rpush should set data in a Set', function (done) {
       async.series([
         queue.rpush.bind(queue, data),
-        driver.client.hget.bind(driver.client, nameSet, driver.shasum(data))
+        driver.client.sismember.bind(driver.client, nameSet, driver.shasum(data))
       ], function (err, data) {
         if (err) return done(err);
         expect(data[0]).to.equal(1);
-        expect(data[1]).to.equal('first');
+        expect(data[1]).to.equal(1);
         done();
       });
     });
@@ -152,11 +152,11 @@ describe('Queue', function () {
     it('lpush should set data in a Set', function (done) {
       async.series([
         queue.lpush.bind(queue, data),
-        driver.client.hget.bind(driver.client, nameSet, driver.shasum(data))
+        driver.client.sismember.bind(driver.client, nameSet, driver.shasum(data))
       ], function (err, data) {
         if (err) return done(err);
         expect(data[0]).to.equal(1);
-        expect(data[1]).to.equal('first');
+        expect(data[1]).to.equal(1);
         done();
       });
     });
