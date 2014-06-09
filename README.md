@@ -243,7 +243,7 @@ Written and maintained by [Greg Bergé][neoziro] and [Justin Bourrousse][JBustin
 
 An original idea by [David Desbouis][desbouis].
 
-Build an used on [Le Monde.fr](http://www.lemonde.fr).
+Built an used at [Le Monde](http://www.lemonde.fr).
 
 [neoziro]: http://github.com/neoziro
 [desbouis]: http://github.com/desbouis
