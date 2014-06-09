@@ -131,17 +131,41 @@ Emitted when:
 - a callback is omitted and an error occur in a method
 - a redis "error" event is emitted
 
+```js
+queue.on('error', function (error) {
+  // ...
+});
+```
+
 ##### "job failure"
 
 Emitted when an error is returned by the job process.
 
-##### "job success"
+```js
+queue.on('job failure', function (task, error) {
+  // ...
+});
+```
+
+##### "job complete"
 
 Emitted when a job is completed without error.
+
+```js
+queue.on('job complete', function (task) {
+  // ...
+});
+```
 
 ##### "status change"
 
 Emitted when the worker status change.
+
+```js
+queue.on('status change', function (status) {
+  // ...
+});
+```
 
 ### Queue
 
@@ -163,12 +187,12 @@ Arguments:
 var queue = taskman.createQueue('email', {unique: true});
 ```
 
-#### queue.create(task)
+#### queue.push(task)
 
-Create a new task.
+Push a new task at the end of the queue.
 
 ```js
-queue.create({to: 'hello@world.com', body: 'Hello world!'});
+queue.push({to: 'hello@world.com', body: 'Hello world!'});
 ```
 
 #### queue.close([callback])
@@ -193,9 +217,21 @@ Emitted when:
 - a callback is omitted and an error occur in a method
 - a redis "error" event is emitted
 
+```js
+queue.on('error', function (error) {
+  // ...
+});
+```
+
 ##### "created"
 
 Emitted when a new task is created.
+
+```js
+queue.on('created', function (task) {
+  // ...
+});
+```
 
 ## License
 

@@ -1,4 +1,4 @@
-var expect = require('chai').expect;
+var expect = require('chai').use(require('sinon-chai')).expect;
 var sinon = require('sinon');
 var os = require('os');
 var async = require('async');
@@ -68,6 +68,17 @@ describe('Taskman worker', function () {
         }
       ], done);
     });
+
+    it('should emit a "status change" event if the status change', function (done) {
+      var spy = sinon.spy();
+      worker.status = 'waiting';
+      worker.on('status change', spy);
+      worker.set({status: 'working'}, function (err) {
+        if (err) return done(err);
+        expect(spy).to.be.calledWith('working');
+        done();
+      });
+    });
   });
 
   describe('#get', function () {
@@ -118,7 +129,8 @@ describe('Taskman worker', function () {
         batch: 20,
         ping: 4200,
         sleep: 1000,
-        type: 'lifo'
+        type: 'lifo',
+        status: 'working'
       }, done);
     });
 
@@ -132,10 +144,21 @@ describe('Taskman worker', function () {
         done();
       });
     });
+
+    it('should emit a "status change" event if the status change', function (done) {
+      var spy = sinon.spy();
+      worker.status = 'waiting';
+      worker.on('status change', spy);
+      worker.fetch(function (err) {
+        if (err) return done(err);
+        expect(spy).to.be.calledWith('working');
+        done();
+      });
+    });
   });
 
   describe('#process', function () {
-    var worker;
+    var worker, queue;
 
     beforeEach(function () {
       worker = taskman.createWorker('test', {name:'w'});
@@ -145,8 +168,17 @@ describe('Taskman worker', function () {
       worker.redis.flushdb(done);
     });
 
+    afterEach(function (done) {
+      worker.close(done);
+    });
+
+    afterEach(function (done) {
+      if (queue) queue.close(done);
+      else done();
+    });
+
     it('should update data in redis', function (done) {
-      worker.process(function (res) {
+      worker.process(function (tasks, next) {
         worker.get(function (err, infos) {
           if (err) return done(err);
           expect(infos).to.have.property('createdAt');
@@ -157,6 +189,7 @@ describe('Taskman worker', function () {
           expect(infos).to.have.property('type', 'fifo');
           expect(infos).to.have.property('taskCount', '1');
           expect(infos).to.have.property('status', 'working');
+          next();
           done();
         });
       });
@@ -166,13 +199,13 @@ describe('Taskman worker', function () {
 
     it('should process tasks', function (done) {
       worker = taskman.createWorker('test', {name: 'w', ping: 10000});
-      var queue = taskman.createQueue('test');
+      queue = taskman.createQueue('test');
       var c = 0;
 
       worker.process(function (res, next) {
         if (c === 0) expect(res).to.eql(['a']);
         if (c === 1) expect(res).to.eql(['b']);
-        if (c === 2) return done();
+        if (c === 2) done();
         c++;
         next();
       });
@@ -188,13 +221,13 @@ describe('Taskman worker', function () {
 
     it('should process unique tasks', function (done) {
       worker = taskman.createWorker('test', {name: 'w', unique: true, ping: 10});
-      var queue = taskman.createQueue('test');
+      queue = taskman.createQueue('test');
       var c = 0;
 
       worker.process(function (res, next) {
         if (c === 0) expect(res).to.eql(['a']);
         if (c === 1) expect(res).to.eql(['b']);
-        if (c === 2) return done();
+        if (c === 2) done();
         c++;
         next();
       });
@@ -207,11 +240,50 @@ describe('Taskman worker', function () {
         setTimeout(queue.push.bind(queue, 'c'), 50);
       });
     });
+
+    it('should emit a "job failure" event if process returns an error', function (done) {
+      worker = taskman.createWorker('jobfailure');
+      queue = taskman.createQueue('jobfailure');
+
+      worker.on('job failure', function (tasks, err) {
+        expect(tasks).to.eql(['task']);
+        expect(err).to.be.instanceOf(Error);
+        expect(err).to.have.property('message', 'error');
+        done();
+      });
+
+      worker.process(function (tasks, next) {
+        next(new Error('error'));
+      });
+
+      queue.push('task');
+    });
+
+    it('should emit a "job complete" event if process does\'t return an error', function (done) {
+      worker = taskman.createWorker('jobcomplete');
+      queue = taskman.createQueue('jobcomplete');
+
+      worker.on('job complete', function (tasks) {
+        expect(tasks).to.eql(['task']);
+        done();
+      });
+
+      worker.process(function (tasks, next) {
+        next();
+      });
+
+      queue.push('task');
+    });
   });
 
   describe('#close', function () {
+    var worker;
+
+    beforeEach(function () {
+      worker = taskman.createWorker('test');
+    });
+
     it('should close connection to redis', function (done) {
-      var worker = taskman.createWorker('test');
       worker.close(function (err) {
         if (err) return done(err);
         expect(worker.queue.redis.closing).to.be.true;
@@ -221,7 +293,6 @@ describe('Taskman worker', function () {
     });
 
     it('should be possible to not close the queue', function (done) {
-      var worker = taskman.createWorker('test');
       worker.close({queue: false}, function (err) {
         if (err) return done(err);
         expect(worker.queue.redis.closing).to.be.false;
