@@ -1,4 +1,5 @@
-var expect = require('chai').expect;
+var expect = require('chai').use(require('sinon-chai')).expect;
+var sinon = require('sinon');
 var async = require('async');
 var taskman = require('../');
 
@@ -43,6 +44,17 @@ describe('Taskman queue', function () {
             });
           }
         ], done);
+      });
+
+      it('should emit a "created" event', function (done) {
+        var spy = sinon.spy();
+        queue.on('created', spy);
+
+        queue.push({foo: 'bar'}, function (err) {
+          if (err) return done(err);
+          expect(spy).to.be.calledWith({foo: 'bar'});
+          done();
+        });
       });
     });
 
