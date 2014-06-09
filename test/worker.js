@@ -215,4 +215,26 @@ describe('Taskman worker', function () {
       });
     });
   });
+
+  describe('#close', function () {
+    it('should close connection to redis', function (done) {
+      var worker = taskman.createWorker('test');
+      worker.close(function (err) {
+        if (err) return done(err);
+        expect(worker.queue.redis.closing).to.be.true;
+        expect(worker.redis.closing).to.be.true;
+        done();
+      });
+    });
+
+    it('should be possible to not close the queue', function (done) {
+      var worker = taskman.createWorker('test');
+      worker.close({queue: false}, function (err) {
+        if (err) return done(err);
+        expect(worker.queue.redis.closing).to.be.false;
+        expect(worker.redis.closing).to.be.true;
+        done();
+      });
+    });
+  });
 });
