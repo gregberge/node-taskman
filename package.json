@@ -22,7 +22,7 @@
     "url": "https://github.com/neoziro/node-taskman/issues"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha --recursive"
   },
   "dependencies": {
     "async": "^0.9.0",
