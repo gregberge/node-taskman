@@ -132,7 +132,7 @@ Emitted when:
 - a redis "error" event is emitted
 
 ```js
-queue.on('error', function (error) {
+worker.on('error', function (error) {
   // ...
 });
 ```
@@ -142,7 +142,7 @@ queue.on('error', function (error) {
 Emitted when an error is returned by the job process.
 
 ```js
-queue.on('job failure', function (task, error) {
+worker.on('job failure', function (task, error) {
   // ...
 });
 ```
@@ -152,7 +152,7 @@ queue.on('job failure', function (task, error) {
 Emitted when a job is completed without error.
 
 ```js
-queue.on('job complete', function (task) {
+worker.on('job complete', function (task) {
   // ...
 });
 ```
@@ -162,7 +162,7 @@ queue.on('job complete', function (task) {
 Emitted when the worker status change.
 
 ```js
-queue.on('status change', function (status) {
+worker.on('status change', function (status) {
   // ...
 });
 ```
