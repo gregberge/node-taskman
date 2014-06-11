@@ -5,10 +5,11 @@ var taskman = require('../');
 
 describe('Taskman queue', function () {
   describe('non unique', function () {
-    var queue;
+    var queue, queue2;
 
     beforeEach(function () {
       queue = taskman.createQueue('myQueue', {unique: false});
+      queue2 = taskman.createQueue('myQueue', {unique: false});
     });
 
     beforeEach(function (done) {
@@ -96,7 +97,9 @@ describe('Taskman queue', function () {
           done();
         });
 
-        queue.redis.rpush('queue:myQueue', ['{"foo":"bar"}']);
+        setTimeout(function () {
+          queue2.redis.rpush('queue:myQueue', ['{"foo":"bar"}']);
+        }, 10);
       });
 
       it('should fetch multiple values', function (done) {
