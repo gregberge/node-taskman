@@ -31,21 +31,4 @@ describe('Util', function () {
       expect(onErrorSpy).to.not.be.called;
     });
   });
-
-  describe('#pipeEvent', function () {
-    var source, target;
-
-    beforeEach(function () {
-      source = new EventEmitter();
-      target = new EventEmitter();
-    });
-
-    it('should pipe event from an emitter to another', function () {
-      var spy = sinon.spy();
-      target.on('test', spy);
-      util.pipeEvent('test', source, target);
-      source.emit('test', 'hello');
-      expect(spy).to.be.calledWith('hello');
-    });
-  });
 });
