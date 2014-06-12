@@ -1,517 +1,304 @@
-'use strict';
-
-var async = require('async');
-var moment = require('moment');
-var sinon = require('sinon');
-var QueueWorker = require('../lib/worker').Worker;
-var Queue = require('../lib/queue').Queue;
-var RedisDriver = require('../lib/driver/redis').RedisDriver;
-var config = require('./config');
 var expect = require('chai').use(require('sinon-chai')).expect;
+var sinon = require('sinon');
+var os = require('os');
+var async = require('async');
+var taskman = require('../');
+var TQueue = require('../lib/queue');
 
-describe('Worker with a redis queue', function () {
+describe('Taskman worker', function () {
+  describe('constructor', function () {
+    it('should instantiate queue automatically', function () {
+      var worker = taskman.createWorker('test', {unique:true});
+      expect(worker.queue).to.be.instanceOf(TQueue);
+      expect(worker.queue).to.have.deep.property('options.unique', true);
+      expect(worker.queue).to.have.property('name', 'test');
+    });
 
-  var worker, queue;
-  var driver = new RedisDriver(config.redis.run);
-
-  // mock
-  var action = sinon.stub().yields();
-  var status = QueueWorker.prototype.setStatus = sinon.spy(QueueWorker.prototype.setStatus);
-
-  // init queue and driver
-  driver.db = config.redis.db;
-  queue = new Queue('Q', driver);
-
-  // init worker with options
-  function initWorker(options, callback) {
-    worker = new QueueWorker(queue, driver, 'W', action, options);
-    worker.start(callback);
-  }
-
-  // reinit state of bd and mocks
-  afterEach(function (done) {
-    action.reset();
-    status.reset();
-    driver.client.flushdb(done);
+    it('should default name to hostname', function () {
+      var worker = taskman.createWorker('test');
+      expect(worker).to.have.deep.property('options.name', os.hostname());
+    });
   });
 
+  describe('#set', function () {
+    var worker, clock;
 
-
-  describe('#Controls', function () {
+    beforeEach(function () {
+      worker = taskman.createWorker('test', {name:'w'});
+    });
 
     beforeEach(function (done) {
-      initWorker(null, done);
+      worker.redis.flushdb(done);
     });
-
-    describe('#start', function () {
-
-      it('should be initialized', function () {
-        expect(worker.initialized).to.be.true;
-      });
-
-      it('should initialize queue', function () {
-        expect(worker.queue).to.eql(queue);
-      });
-
-      it('should initialize name', function () {
-        expect(worker.completeName).to.equal('Q:W');
-      });
-
-      it('should record default parameters in storage', function (done) {
-        worker.driver.hgetall(worker.completeName, function (err, params) {
-          if (err) return done(err);
-          expect(params).to.have.property('waiting_timeout', '1');
-          expect(params).to.have.property('loop_sleep', '0');
-          expect(params).to.have.property('pause_sleep_time', '5');
-          expect(params).to.have.property('data_per_tick', '1');
-          expect(params).to.have.property('action', 'stub');
-          expect(params).to.have.property('queue', 'Q');
-          expect(params).to.have.property('type', 'FIFO');
-          expect(params).to.have.property('language', 'nodejs');
-          expect(params).to.have.property('unique', '0');
-          done();
-        });
-      });
-
-      it('should set end date', function (done) {
-        worker.driver.hget(worker.completeName, 'end_date', function (err, data) {
-          if (err) return done(err);
-          expect(moment(data).diff(moment(), 'days') + 1).to.equal(200);
-          done();
-        });
-      });
-
-      it('should set status', function (done) {
-        worker.driver.hget(worker.completeName, 'status', function (err, data) {
-          if (err) return done(err);
-          expect(data).to.equal(QueueWorker.STATUS_STARTED);
-          done();
-        });
-      });
-
-      it('should set cpt_action', function (done) {
-        worker.driver.hget(worker.completeName, 'cpt_action', function (err, data) {
-          if (err) return done(err);
-          expect(data).to.equal('0');
-          done();
-        });
-      });
-
-      it('should set start_date', function (done) {
-        worker.driver.hget(worker.completeName, 'start_date', function (err, data) {
-          if (err) return done(err);
-          expect(moment(data)).to.have.property('_isAMomentObject', true);
-          done();
-        });
-      });
-
-      it('should set status change date', function (done) {
-        worker.driver.hget(worker.completeName, 'status_changedate', function (err, data) {
-          if (err) return done(err);
-          expect(moment(data)).to.have.property('_isAMomentObject', true);
-          done();
-        });
-      });
-
-      it('shouldn\'t launch an action', function () {
-        expect(action).not.to.be.called;
-      });
-
-      it('should fix worker status', function () {
-        expect(status).to.be.calledWith(QueueWorker.STATUS_STARTED);
-      });
-    });
-
-    describe('#pause', function () {
-
-      beforeEach(function (done) {
-        worker.pause(done);
-      });
-
-      it('should change status', function (done) {
-        worker.driver.hget(worker.completeName, 'status', function (err, data) {
-          if (err) return done(err);
-          expect(data).to.equal(QueueWorker.STATUS_PAUSED);
-          done();
-        });
-      });
-
-      it('shouldn\'t launch an action', function () {
-        expect(action).not.to.be.called;
-      });
-
-      it('should fix worker status', function () {
-        expect(status).to.be.calledWith(QueueWorker.STATUS_STARTED);
-        expect(status).to.be.calledWith(QueueWorker.STATUS_PAUSED);
-      });
-
-    });
-
-    describe('#stop', function () {
-
-      beforeEach(function (done) {
-        worker.stop(done);
-      });
-
-      it('shouldn\'t launch an action', function () {
-        expect(action).not.to.be.called;
-      });
-
-      it('should set end date', function (done) {
-        worker.driver.hget(worker.completeName, 'end_date', function (err, data) {
-          if (err) return done(err);
-          expect(parseInt(moment(data).format('X'), 10)).to.be.below(Date.now());
-          done();
-        });
-      });
-    });
-  });
-
-
-  describe('#Process', function () {
 
     beforeEach(function () {
-      driver = new RedisDriver(config.redis.run);
-      driver.db = config.redis.db;
-      queue = new Queue('Q', driver);
+      clock = sinon.useFakeTimers();
     });
 
-    describe('FIFO', function () {
+    afterEach(function () {
+      clock.restore();
+    });
 
-      beforeEach(function (done) {
-        initWorker(null, done);
-      });
-
-      it('should treat an element', function (done) {
-        queue.rpush('first', function (err) {
-          if (err) return done(err);
-          worker.on('job complete', function () {
-            expect(action).to.be.calledWith(['first']);
-            done();
+    it('should accept an object', function (done) {
+      async.series([
+        function set(next) {
+          worker.set({foo: 'bar'}, next);
+        },
+        function checkHash(next) {
+          worker.redis.hget('worker:test:w', 'foo', function (err, res) {
+            if (err) return next(err);
+            expect(res).to.equal('bar');
+            next();
           });
-        });
-      });
-
-      it('should treat some elements in the good order', function (done) {
-        var elements = ['first', 'second', 'third'];
-        var expectElements = [];
-
-        worker.on('job complete', function () {
-          expectElements.push(action.getCall(expectElements.length).args[0][0]);
-
-          if (expectElements.length !== elements.length) return;
-
-          expect(expectElements).to.eql(elements);
-          worker.removeAllListeners();
-          done();
-        });
-
-        async.eachSeries(elements, queue.rpush.bind(queue), function (err) {
-          if (err) return done(err);
-        });
-      });
-
+        }
+      ], done);
     });
 
-    describe('LIFO', function () {
-
-      beforeEach(function (done) {
-        initWorker({type: 'LIFO', pauseSleepTime: 0.01}, done);
-      });
-
-      it('should treat an element', function (done) {
-        queue.rpush('first', function (err) {
-          if (err) return done(err);
-          worker.on('job complete', function () {
-            expect(action).to.be.calledWith(['first']);
-            done();
+    it('should set the updateAt', function (done) {
+      async.series([
+        function set(next) {
+          worker.set({foo: 'bar'}, next);
+        },
+        function checkHash(next) {
+          worker.redis.hget('worker:test:w', 'updatedAt', function (err, res) {
+            if (err) return next(err);
+            expect(res).to.equal('1970-01-01T00:00:00.000Z');
+            next();
           });
-        });
-      });
-
-      it('should treat some elements in the good order', function (done) {
-        var elements = ['first', 'second', 'third'];
-        var expectElements = [];
-
-        worker.on('job complete', function () {
-          expectElements.push(action.getCall(expectElements.length).args[0][0]);
-
-          if (expectElements.length !== elements.length) return;
-
-          expect(expectElements).to.eql(elements);
-          worker.removeAllListeners();
-          done();
-        });
-
-        async.eachSeries(elements, queue.lpush.bind(queue), function (err) {
-          if (err) return done(err);
-        });
-      });
-
-      it('should treat the same element many times', function (done) {
-        var expectElements = [];
-
-        worker.on('job complete', function () {
-          expectElements.push(action.getCall(expectElements.length).args[0][0]);
-
-          if (expectElements.length !== 3) return;
-
-          expect(expectElements).to.eql(['first', 'first', 'first']);
-          worker.removeAllListeners();
-          done();
-        });
-
-        async.series([
-          worker.setStatus.bind(worker, QueueWorker.STATUS_PAUSED),
-          queue.rpush.bind(queue, 'first'),
-          queue.rpush.bind(queue, 'first'),
-          queue.rpush.bind(queue, 'first'),
-          worker.setStatus.bind(worker, QueueWorker.STATUS_WORKING)
-        ], function (err) {
-          if (err) return done(err);
-        });
-      });
-
+        }
+      ], done);
     });
 
-    describe('Unique mode', function () {
-
-      beforeEach(function (done) {
-        queue = new Queue('Q', driver, {unique: true});
-        initWorker({pauseSleepTime: 0.01}, done);
-      });
-
-      it('should be impossible to have the same key in the queue', function (done) {
-        var expectElements = [];
-
-        worker.on('job complete', function () {
-          expectElements.push(action.getCall(expectElements.length).args[0][0]);
-
-          if (expectElements.length !== 2) return;
-
-          expect(expectElements).to.eql(['first', 'second']);
-          worker.removeAllListeners();
-          done();
-        });
-
-        async.series([
-          worker.setStatus.bind(worker, QueueWorker.STATUS_PAUSED),
-          queue.rpush.bind(queue, 'first'),
-          queue.rpush.bind(queue, 'first'),
-          queue.rpush.bind(queue, 'first'),
-          queue.rpush.bind(queue, 'first'),
-          queue.rpush.bind(queue, 'first'),
-          queue.rpush.bind(queue, 'second'),
-          worker.setStatus.bind(worker, QueueWorker.STATUS_WORKING)
-        ], function (err) {
-          if (err) return done(err);
-        });
-
+    it('should emit a "status change" event if the status change', function (done) {
+      var spy = sinon.spy();
+      worker.status = 'waiting';
+      worker.on('status change', spy);
+      worker.set({status: 'working'}, function (err) {
+        if (err) return done(err);
+        expect(spy).to.be.calledWith('working');
+        done();
       });
     });
-
   });
 
-});
-
-
-describe('Worker processing', function () {
-  var mockQueue, mockDriver, worker, clock, action;
-
-  function getTimeAddSeconds(seconds) {
-    var now = new Date();
-    now.setSeconds(now.getSeconds() + seconds);
-    return now;
-  }
-
-  beforeEach(function () {
-    mockQueue = {
-      driver: { close: sinon.spy() },
-      getName: sinon.stub().returns('Q')
-    };
-    mockDriver = { close: sinon.spy() };
-    clock = sinon.useFakeTimers();
-    sinon.stub(process, 'nextTick', setTimeout);
-    action = sinon.spy();
-  });
-
-  afterEach(function () {
-    process.nextTick.restore();
-    clock.restore();
-  });
-
-  it('should close connexion if no infos are retrieved in redis', function () {
-    worker = new QueueWorker(mockQueue, mockDriver, 'W', action);
-
-    worker.getInfos = sinon.stub().yields(null);
-
-    worker.process();
-
-    clock.tick(1);
-
-    expect(mockQueue.driver.close).to.be.called;
-    expect(mockDriver.close).to.be.called;
-    expect(action).not.to.be.called;
-  });
-
-  it('should close connexion if end_date is earlier than now', function () {
-    Date.now = sinon.spy(getTimeAddSeconds.bind(null, 10));
-
-    worker = new QueueWorker(mockQueue, mockDriver, 'W', action);
-
-    worker.getInfos = sinon.stub().yields(null, {
-      'end_date': '1970-01-01T00:00:00.000Z'
-    });
-
-    worker.process();
-
-    clock.tick(1);
-
-    expect(mockQueue.driver.close).to.be.called;
-    expect(mockDriver.close).to.be.called;
-    expect(action).not.to.be.called;
-  });
-
-  it('should only relaunch a process if it is in pause', function () {
-    Date.now = sinon.spy(getTimeAddSeconds.bind(null, 10));
-
-    worker = new QueueWorker(mockQueue, mockDriver, 'W', action);
-
-    worker.getInfos = sinon.stub().yields(null, {
-      'end_date': '1970-01-02T00:00:00.000Z',
-      'pause_sleep_time': '5',
-      status: QueueWorker.STATUS_PAUSED
-    });
-
-    worker.process();
-
-    clock.tick(1);
-
-    expect(action).not.to.be.called;
-  });
-
-  it('should call lpop if it is in fifo, and no results', function () {
-    mockQueue.lpop = sinon.stub().yields(null, []);
-    mockQueue.rpop = sinon.stub().yields(null, []);
-
-    Date.now = sinon.spy(getTimeAddSeconds.bind(null, 10));
-
-    worker = new QueueWorker(mockQueue, mockDriver, 'W', action);
-    worker.setStatus = sinon.stub().yields();
-    worker.getInfos = sinon.stub().yields(null, {
-      'end_date': '1970-01-02T00:00:00.000Z',
-      'data_per_tick': '1',
-      'waiting_timeout': '1',
-      type: 'FIFO'
-    });
-
-    worker.process();
-
-    clock.tick(1);
-
-    expect(mockQueue.rpop).not.to.be.called;
-    expect(mockQueue.lpop).to.be.calledWith('1');
-    expect(worker.setStatus).to.be.calledWith(QueueWorker.STATUS_WAITING);
-    expect(action).not.to.be.called;
-  });
-
-  it('should call rpop if it is in lifo, and no results', function () {
-    mockQueue.lpop = sinon.stub().yields(null, []);
-    mockQueue.rpop = sinon.stub().yields(null, []);
-
-    Date.now = sinon.spy(getTimeAddSeconds.bind(null, 10));
-
-    worker = new QueueWorker(mockQueue, mockDriver, 'W', action);
-    worker.setStatus = sinon.stub().yields();
-    worker.getInfos = sinon.stub().yields(null, {
-      'end_date': '1970-01-02T00:00:00.000Z',
-      'data_per_tick': '1',
-      'waiting_timeout': '1',
-      type: 'LIFO'
-    });
-
-    worker.process();
-
-    clock.tick(1);
-
-    expect(mockQueue.lpop).not.to.be.called;
-    expect(mockQueue.rpop).to.be.calledWith('1');
-    expect(worker.setStatus).to.be.calledWith(QueueWorker.STATUS_WAITING);
-    expect(action).not.to.be.called;
-  });
-
-  it('should call the action if there are some results', function () {
-    mockQueue.lpop = sinon.stub().yields(null, ['first']);
-
-    Date.now = sinon.spy(getTimeAddSeconds.bind(null, 10));
-
-    worker = new QueueWorker(mockQueue, mockDriver, 'W', action);
-    worker.setStatus = sinon.stub().yields();
-    worker.getInfos = sinon.stub().yields(null, {
-      'end_date': '1970-01-02T00:00:00.000Z',
-      'data_per_tick': '1',
-      'waiting_timeout': '1',
-      'loop_sleep': '0',
-      type: 'FIFO'
-    });
-
-    worker.process();
-
-    clock.tick(1);
-
-    expect(worker.setStatus).to.be.calledWith(QueueWorker.STATUS_WORKING);
-    expect(action).to.be.called;
-  });
-
-  describe('#Timeout', function () {
+  describe('#get', function () {
+    var worker;
 
     beforeEach(function () {
-      mockQueue.lpop = sinon.stub().yields(null, ['first']);
+      worker = taskman.createWorker('test', {name:'w'});
+    });
 
-      action = function (result, callback) {
-        setTimeout(callback, 1000);
-      };
+    beforeEach(function (done) {
+      worker.redis.flushdb(done);
+    });
 
-      worker = new QueueWorker(mockQueue, mockDriver, 'W', action, {
-        timeout: 200,
-        loop_sleep: 0
-      });
+    beforeEach(function (done) {
+      worker.redis.hmset('worker:test:w', {a: 'b', c: 'd'}, done);
+    });
 
-      worker.setStatus = sinon.stub().yields();
-      worker.getInfos = sinon.stub().yields(null, {
-        'end_date': '1970-01-02T00:00:00.000Z',
-        'data_per_tick': '1',
-        'waiting_timeout': '1',
-        'loop_sleep': '0',
-        type: 'FIFO'
+    it('should get all data (no args)', function (done) {
+      worker.get(function (err, res) {
+        if (err) return done(err);
+        expect(res).to.eql({a: 'b', c: 'd'});
+        done();
       });
     });
 
-    it('should call the callback even if the action is not finished (timeout)', function (done) {
-      worker.on('job failure', function (err) {
-        expect(err).to.eql(new Error('Timeout'));
+    it('should get one value', function (done) {
+      worker.get('a', function (err, res) {
+        if (err) return done(err);
+        expect(res).to.eql('b');
+        done();
+      });
+    });
+  });
+
+  describe('#fetch', function () {
+    var worker;
+
+    beforeEach(function () {
+      worker = taskman.createWorker('test', {name:'w'});
+    });
+
+    beforeEach(function (done) {
+      worker.redis.flushdb(done);
+    });
+
+    beforeEach(function (done) {
+      worker.redis.hmset('worker:test:w', {
+        batch: 20,
+        ping: 4200,
+        sleep: 1000,
+        type: 'lifo',
+        status: 'working'
+      }, done);
+    });
+
+    it('should update worker informations from redis', function (done) {
+      worker.fetch(function (err) {
+        if (err) return done(err);
+        expect(worker).to.have.property('batch', 20);
+        expect(worker).to.have.property('ping', 4200);
+        expect(worker).to.have.property('sleep', 1000);
+        expect(worker).to.have.property('type', 'lifo');
+        done();
+      });
+    });
+
+    it('should emit a "status change" event if the status change', function (done) {
+      var spy = sinon.spy();
+      worker.status = 'waiting';
+      worker.on('status change', spy);
+      worker.fetch(function (err) {
+        if (err) return done(err);
+        expect(spy).to.be.calledWith('working');
+        done();
+      });
+    });
+  });
+
+  describe('#process', function () {
+    var worker, queue;
+
+    beforeEach(function () {
+      worker = taskman.createWorker('test', {name:'w'});
+    });
+
+    beforeEach(function (done) {
+      worker.redis.flushdb(done);
+    });
+
+    afterEach(function (done) {
+      worker.close(done);
+    });
+
+    afterEach(function (done) {
+      if (queue) queue.close(done);
+      else done();
+    });
+
+    it('should update data in redis', function (done) {
+      worker.process(function (tasks, next) {
+        worker.get(function (err, infos) {
+          if (err) return done(err);
+          expect(infos).to.have.property('createdAt');
+          expect(infos).to.have.property('pid', process.pid + '');
+          expect(infos).to.have.property('batch', '1');
+          expect(infos).to.have.property('ping', '1000');
+          expect(infos).to.have.property('sleep', '0');
+          expect(infos).to.have.property('type', 'fifo');
+          expect(infos).to.have.property('taskCount', '1');
+          expect(infos).to.have.property('status', 'working');
+          next();
+          done();
+        });
+      });
+
+      worker.queue.push('x');
+    });
+
+    it('should process tasks', function (done) {
+      worker = taskman.createWorker('test', {name: 'w', ping: 10000});
+      queue = taskman.createQueue('test');
+      var c = 0;
+
+      worker.process(function (res, next) {
+        if (c === 0) expect(res).to.eql(['a']);
+        if (c === 1) expect(res).to.eql(['b']);
+        if (c === 2) done();
+        c++;
+        next();
+      });
+
+      async.series([
+        queue.push.bind(queue, 'a'),
+        queue.push.bind(queue, 'b')
+      ], function (err) {
+        if (err) return done(err);
+        setTimeout(queue.push.bind(queue, 'c'), 50);
+      });
+    });
+
+    it('should process unique tasks', function (done) {
+      worker = taskman.createWorker('test', {name: 'w', unique: true, ping: 10});
+      queue = taskman.createQueue('test');
+      var c = 0;
+
+      worker.process(function (res, next) {
+        if (c === 0) expect(res).to.eql(['a']);
+        if (c === 1) expect(res).to.eql(['b']);
+        if (c === 2) done();
+        c++;
+        next();
+      });
+
+      async.series([
+        queue.push.bind(queue, 'a'),
+        queue.push.bind(queue, 'b')
+      ], function (err) {
+        if (err) return done(err);
+        setTimeout(queue.push.bind(queue, 'c'), 50);
+      });
+    });
+
+    it('should emit a "job failure" event if process returns an error', function (done) {
+      worker = taskman.createWorker('jobfailure');
+      queue = taskman.createQueue('jobfailure');
+
+      worker.on('job failure', function (tasks, err) {
+        expect(tasks).to.eql(['task']);
+        expect(err).to.be.instanceOf(Error);
+        expect(err).to.have.property('message', 'error');
         done();
       });
 
-      worker.on('job complete', done.bind(null, new Error('Timeout failure')));
-      worker.process();
+      worker.process(function (tasks, next) {
+        next(new Error('error'));
+      });
 
-      clock.tick(201);
+      queue.push('task');
     });
 
-    it('should continue to pop the queue even if the action is in timeout', function () {
-      worker.process = sinon.spy(worker.process.bind(worker));
-      worker.process();
+    it('should emit a "job complete" event if process does\'t return an error', function (done) {
+      worker = taskman.createWorker('jobcomplete');
+      queue = taskman.createQueue('jobcomplete');
 
-      clock.tick(501);
+      worker.on('job complete', function (tasks) {
+        expect(tasks).to.eql(['task']);
+        done();
+      });
 
-      // execute the action :
-      // 1 time when process is launched
-      // 2 times after timeout
-      expect(worker.process.callCount).to.equal(3);
+      worker.process(function (tasks, next) {
+        next();
+      });
+
+      queue.push('task');
     });
-
   });
 
+  describe('#close', function () {
+    var worker;
 
+    beforeEach(function () {
+      worker = taskman.createWorker('test');
+    });
+
+    it('should close connection to redis', function (done) {
+      worker.close(function (err) {
+        if (err) return done(err);
+        expect(worker.queue.redis.closing).to.be.true;
+        expect(worker.redis.closing).to.be.true;
+        done();
+      });
+    });
+
+    it('should be possible to not close the queue', function (done) {
+      worker.close({queue: false}, function (err) {
+        if (err) return done(err);
+        expect(worker.queue.redis.closing).to.be.false;
+        expect(worker.redis.closing).to.be.true;
+        done();
+      });
+    });
+  });
 });
