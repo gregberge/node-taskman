@@ -178,7 +178,7 @@ Arguments:
 ```
   {string} name Name of the task to process.
   {object} options Options.
-  {object|function} redis Redis configuration.
+  {object|function} options.redis Redis configuration.
   {boolean} options.unique Unique queue or not (default false).
 ```
 
