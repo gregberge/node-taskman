@@ -1,6 +1,6 @@
 {
   "name": "node-taskman",
-  "version": "0.4.5",
+  "version": "1.0.0",
   "description": "Fast work queue based on redis.",
   "keywords": [
     "work",
