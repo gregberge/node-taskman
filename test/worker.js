@@ -187,6 +187,7 @@ describe('Taskman worker', function () {
           expect(infos).to.have.property('ping', '1000');
           expect(infos).to.have.property('sleep', '0');
           expect(infos).to.have.property('type', 'fifo');
+          expect(infos).to.have.property('queue', 'test');
           expect(infos).to.have.property('taskCount', '1');
           expect(infos).to.have.property('status', 'working');
           next();
