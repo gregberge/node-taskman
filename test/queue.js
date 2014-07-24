@@ -259,6 +259,62 @@ describe('Taskman queue', function () {
         ], done);
       });
 
+      it('should pop in the right direction (#fifo)', function (done) {
+        async.series([
+          function push(next) {
+            queue.push('test1', next);
+          },
+          function push(next) {
+            queue.push('test2', next);
+          },
+          function pop(next) {
+            queue.pop('fifo', 1, function (err, data) {
+              if (err) return next(err);
+              expect(data).to.eql(['test1']);
+              next();
+            });
+          },
+          function pop(next) {
+            queue.pop('fifo', 1, function (err, data) {
+              if (err) return next(err);
+              expect(data).to.eql(['test2']);
+              next();
+            });
+          }
+        ], function (err) {
+          if (err) return done(err);
+          done();
+        });
+      });
+
+      it('should pop in the right direction (#lifo)', function (done) {
+        async.series([
+          function push(next) {
+            queue.push('test1', next);
+          },
+          function push(next) {
+            queue.push('test2', next);
+          },
+          function pop(next) {
+            queue.pop('lifo', 1, function (err, data) {
+              if (err) return next(err);
+              expect(data).to.eql(['test2']);
+              next();
+            });
+          },
+          function pop(next) {
+            queue.pop('lifo', 1, function (err, data) {
+              if (err) return next(err);
+              expect(data).to.eql(['test1']);
+              next();
+            });
+          }
+        ], function (err) {
+          if (err) return done(err);
+          done();
+        });
+      });
+
       it('should fetch multiple values', function (done) {
         async.series([
           function pushList(next) {
