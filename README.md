@@ -249,6 +249,20 @@ Thanks to redis, it's possible to [choose the level of persistence](http://redis
 
 Workers configuration (batch, ping, sleep) is stored in a redis hash. If you change this redis hash, the changes will be active without the need to reload your workers.
 
+The redis hash name is "worker:{queueName}:{workerName}".
+
+You will find some informations like:
+
+- createdAt: creation date of the worker
+- pid: process identifier
+- batch: number of tasks processed at each tick
+- ping: ping time
+- sleep: sleep time
+- type: type of worker (fifo or lifo)
+- queue: name of the queue
+- taskCount: number of tasks already processed
+- status: status of the worker (waiting, working, stopped)
+
 ### Unique tasks
 
 If you choose the unique mode, every tasks added in the queue will be present once at a time X. This feature is very interesting if you need to add task that consume a lot of resources. To known if the task is unique or not we compare all the payload of the task.
