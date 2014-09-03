@@ -8,11 +8,11 @@ node-taskman is a fast work queue based on redis.
 
 Core features:
 
-- atomicity
-- persistent queue
-- dynamic worker configuration
-- unique tasks
-- process several tasks at one time
+- [atomicity](#atomicity)
+- [persistence](#persistence)
+- [hot configuration](#hot-configuration)
+- [unique tasks](#unique-tasks)
+- [multi tasks processing](#multi-tasks-processing)
 
 ## Install
 
@@ -197,6 +197,8 @@ queue.push({to: 'hello@world.com', body: 'Hello world!'});
 
 #### queue.close([callback])
 
+Close the connection to the queue, the redis command used is [QUIT](http://redis.io/commands/QUIT), so it will wait that all redis commands are done before closing the connection. The queue will continue to persist so tasks will not be lost.
+
 Arguments:
 
 ```
@@ -232,6 +234,28 @@ queue.on('created', function (task) {
   // ...
 });
 ```
+
+## Features
+
+### Atomicity
+
+Every tasks are added and removed using [redis transactions](http://redis.io/topics/transactions). You can't be stuck in an unstable state.
+
+### Persistence
+
+Thanks to redis, it's possible to [choose the level of persistence](http://redis.io/topics/persistence) of your queue.
+
+### Hot configuration
+
+Workers configuration (batch, ping, sleep) is stored in a redis hash. If you change this redis hash, the changes will be active without the need to reload your workers.
+
+### Unique tasks
+
+If you choose the unique mode, every tasks added in the queue will be present once at a time X. This feature is very interesting if you need to add task that consume a lot of resources. To known if the task is unique or not we compare all the payload of the task.
+
+### Multi tasks processing
+
+Using the configuration "batch" it's possible to specify the number of tasks processed at each tick. This feature is interesting if you need to batch some tasks in a single request (insert in database, indexing...).
 
 ## License
 
