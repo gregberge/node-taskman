@@ -28,7 +28,7 @@
     "async": "^1.2.1",
     "lodash": "^3.9.3",
     "pipe-event": "^0.1.0",
-    "redis": "^0.12.1"
+    "redis": "^2.2.5"
   },
   "devDependencies": {
     "chai": "^3.0.0",
