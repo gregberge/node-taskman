@@ -344,9 +344,9 @@ describe('Taskman queue', function () {
             });
           },
           function checkSet(next) {
-            queue.redis.sismember('unique:myQueue', '"test"', function (err, exists) {
+            queue.redis.smembers('unique:myQueue', function (err, results) {
               if (err) return next(err);
-              expect(exists).to.equal(0);
+              expect(results.length).to.equal(0);
               next();
             });
           }
