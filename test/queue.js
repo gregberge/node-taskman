@@ -315,7 +315,7 @@ describe('Taskman queue', function () {
         });
       });
 
-      it('should fetch multiple values', function (done) {
+      it.only('should fetch multiple values', function (done) {
         async.series([
           function pushList(next) {
             queue.redis.rpush('queue:myQueue', 1, next);
