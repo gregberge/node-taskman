@@ -378,7 +378,7 @@ describe('Taskman queue', function() {
             function pop(next) {
               queue.pop('fifo', 3, function(err, data) {
                 if (err) return next(err);
-                expect(data).to.eql([1, 2, null]);
+                expect(data).to.eql([1, 2]);
                 next();
               });
             },
