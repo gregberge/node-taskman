@@ -22,7 +22,7 @@
     "url": "https://github.com/neoziro/node-taskman/issues"
   },
   "scripts": {
-    "test": "mocha --recursive",
+    "test": "mocha --recursive --exit",
     "format": "prettier --write '{lib,test,tmp}/**/*.js' '*.js'"
   },
   "dependencies": {
@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^3.2.0",
+    "mocha": "^5.2.0",
     "prettier": "1.15.1",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0"
