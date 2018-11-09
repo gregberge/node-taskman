@@ -26,7 +26,7 @@
     "format": "prettier --write '{lib,test,tmp}/**/*.js' '*.js'"
   },
   "dependencies": {
-    "async": "^2.1.4",
+    "async": "^2.6.1",
     "lodash": "^4.17.2",
     "pipe-event": "^0.1.0",
     "redis": "^2.6.3"
