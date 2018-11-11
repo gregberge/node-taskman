@@ -22,21 +22,21 @@
     "url": "https://github.com/neoziro/node-taskman/issues"
   },
   "scripts": {
-    "test": "mocha --recursive",
+    "test": "mocha --recursive --exit",
     "format": "prettier --write '{lib,test,tmp}/**/*.js' '*.js'"
   },
   "dependencies": {
-    "async": "^2.1.4",
-    "lodash": "^4.17.2",
+    "async": "^2.6.1",
+    "lodash": "^4.17.11",
     "pipe-event": "^0.1.0",
-    "redis": "^2.6.3"
+    "redis": "^2.8.0"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "mocha": "^3.2.0",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
     "prettier": "1.15.1",
-    "sinon": "^1.17.6",
-    "sinon-chai": "^2.8.0"
+    "sinon": "^7.1.1",
+    "sinon-chai": "^3.2.0"
   },
   "license": "MIT"
 }

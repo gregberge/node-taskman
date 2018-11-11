@@ -9,7 +9,7 @@ describe('JSON parser', function() {
       obj.obj = obj;
 
       parser.format(obj, function(err) {
-        expect(err).to.exists;
+        expect(err).to.exist;
         done();
       });
     });
@@ -28,7 +28,7 @@ describe('JSON parser', function() {
   describe('#parse', function() {
     it('should catch errors', function(done) {
       parser.parse('{foo:bar}', function(err) {
-        expect(err).to.exists;
+        expect(err).to.exist;
         done();
       });
     });

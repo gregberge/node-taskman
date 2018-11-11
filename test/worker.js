@@ -2,6 +2,7 @@ var expect = require('chai').use(require('sinon-chai')).expect;
 var sinon = require('sinon');
 var os = require('os');
 var async = require('async');
+
 var taskman = require('../');
 var TQueue = require('../lib/queue');
 
@@ -10,13 +11,13 @@ describe('Taskman worker', function() {
     it('should instantiate queue automatically', function() {
       var worker = taskman.createWorker('test', { unique: true });
       expect(worker.queue).to.be.instanceOf(TQueue);
-      expect(worker.queue).to.have.deep.property('options.unique', true);
+      expect(worker.queue).to.have.nested.property('options.unique', true);
       expect(worker.queue).to.have.property('name', 'test');
     });
 
     it('should default name to hostname', function() {
       var worker = taskman.createWorker('test');
-      expect(worker).to.have.deep.property('options.name', os.hostname());
+      expect(worker).to.have.nested.property('options.name', os.hostname());
     });
   });
 
