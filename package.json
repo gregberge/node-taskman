@@ -23,7 +23,8 @@
   },
   "scripts": {
     "test": "mocha --recursive --exit",
-    "format": "prettier --write '{lib,test,tmp}/**/*.js' '*.js'"
+    "format": "prettier --write '{lib,test,tmp}/**/*.js' '*.js'",
+    "release": "standard-version && conventional-github-releaser --preset angular"
   },
   "dependencies": {
     "async": "^2.6.1",
@@ -33,10 +34,12 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "conventional-github-releaser": "^3.1.2",
     "mocha": "^5.2.0",
     "prettier": "1.15.2",
     "sinon": "^7.1.1",
-    "sinon-chai": "^3.2.0"
+    "sinon-chai": "^3.2.0",
+    "standard-version": "^4.4.0"
   },
   "license": "MIT"
 }
